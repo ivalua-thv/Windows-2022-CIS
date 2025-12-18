@@ -1,5 +1,4 @@
 ---
-
 - name: Main | Display Banner
   tags:
     - always
@@ -20,9 +19,9 @@
   ansible.builtin.assert:
     that:
       - ansible_os_family == 'Windows'
-      - ansible_distribution | regex_search('(Microsoft Windows Server 2022)')
-    success_msg: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} is the detected operating system."
-    fail_msg: "This role can only be run against Windows Server 2022 Editions. {{ ansible_distribution }} {{ ansible_distribution_major_version }} is not supported."
+      - ansible_distribution is search('Microsoft Windows Server 2022')
+    success_msg: '{{ ansible_distribution }} {{ ansible_distribution_major_version }} is the detected operating system.'
+    fail_msg: 'This role can only be run against Windows Server 2022 Editions. {{ ansible_distribution }} {{ ansible_distribution_major_version }} is not supported.'
 
 - name: Main | Assert Valid Configuration
   tags:
@@ -30,8 +29,8 @@
   ansible.builtin.assert:
     that:
       - not (win22cis_ansible_remediation | default(false) and win22cis_create_gpos | default(false))
-    success_msg: "The configuration is valid. win22cis_ansible_remediation and win22cis_create_gpos are not enabled simultaneously."
-    fail_msg: "Invalid configuration: Both win22cis_ansible_remediation and win22cis_create_gpos are set to true, which is not allowed."
+    success_msg: 'The configuration is valid. win22cis_ansible_remediation and win22cis_create_gpos are not enabled simultaneously.'
+    fail_msg: 'Invalid configuration: Both win22cis_ansible_remediation and win22cis_create_gpos are set to true, which is not allowed.'
 
 - name: Main | Check Ansible Version
   tags:
@@ -54,7 +53,7 @@
   ansible.builtin.set_fact:
     prelim_windows_installation_type: "{{ prelim_get_windows_installation_type.value | default('') }}"
 
-- name: "Main | Build Out Domain For Testing"
+- name: 'Main | Build Out Domain For Testing'
   when:
     - win22cis_create_domain
     - win22cis_create_gpos
@@ -64,7 +63,7 @@
   ansible.builtin.import_tasks:
     file: domain_creation/prelim_create_dc_and_promote.yml
 
-- name: "Main | Import Create GPO Tasks"
+- name: 'Main | Import Create GPO Tasks'
   when:
     - not win22cis_ansible_remediation
     - win22cis_create_gpos
@@ -74,7 +73,7 @@
   ansible.builtin.import_tasks:
     file: gpo_creation/main.yml
 
-- name: "Main | Import Remediation Tasks"
+- name: 'Main | Import Remediation Tasks'
   when:
     - win22cis_ansible_remediation
     - not win22cis_create_gpos
@@ -84,19 +83,19 @@
   ansible.builtin.import_tasks:
     file: ansible_hardening/main.yml
 
-- name: "Main | Warnings Section"
+- name: 'Main | Warnings Section'
   tags:
     - always
   block:
-    - name: "Main | If Warnings Found Output Count And Control IDs Affected"
+    - name: 'Main | If Warnings Found Output Count And Control IDs Affected'
       when: warn_count != 0
       ansible.builtin.debug:
         msg:
-          - "You have {{ warn_count }} Warning(s) that require investigation(s). Their IDs are listed below:"
-          - "{{ warn_control_list }}"
+          - 'You have {{ warn_count }} Warning(s) that require investigation(s). Their IDs are listed below:'
+          - '{{ warn_control_list }}'
 
-    - name: "Main | No Warnings Found Message"
+    - name: 'Main | No Warnings Found Message'
       when: warn_count == 0
       ansible.builtin.debug:
         msg:
-          - "You have no Warning(s) that require investigation(s)."
+          - 'You have no Warning(s) that require investigation(s).'
